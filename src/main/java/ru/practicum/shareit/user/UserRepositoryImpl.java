@@ -7,8 +7,8 @@ import java.util.*;
 
 @Component
 public class UserRepositoryImpl implements UserRepository {
-    private static final Map<Long, User> users = new HashMap<>();
-    private final Set<String> emailList = new HashSet<>();
+    private static Map<Long, User> users = new HashMap<>();
+    private static Set<String> emailList = new HashSet<>();
     private static long id = 1;
 
     @Override

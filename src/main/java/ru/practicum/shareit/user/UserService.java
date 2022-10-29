@@ -1,22 +1,21 @@
 package ru.practicum.shareit.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundExeption;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
 
-    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     public List<UserDto> getUsers() {
+        log.info("Возвращаем всех юзеров");
         List<User> users = userRepository.findAll();
         return users.stream()
                 .map(UserMapper::userToDto)
@@ -24,6 +23,7 @@ public class UserService {
     }
 
     public UserDto getUserById(long userId) {
+        log.info(String.format("Возвращаем юзера с id %s",userId));
         return userRepository.findUserById(userId)
                 .map(UserMapper::userToDto)
                 .orElseThrow(() -> new NotFoundExeption(
@@ -31,23 +31,27 @@ public class UserService {
     }
 
     public UserDto getUserByEmail(String email) {
+        log.info(String.format("Возвращаем юзера с email %s",email));
         return userRepository.findUserByEmail(email)
                 .map(UserMapper::userToDto)
                 .orElse(null);
     }
 
     public UserDto createUser(UserDto userDto) {
+        log.info("Создаем юзера");
         User user = UserMapper.dtoToUser(userDto);
         return UserMapper.userToDto(userRepository.createUser(user));
     }
 
     public UserDto updateUser(long userId, UserDto userDto) {
+        log.info(String.format("Обновляем юзера с id %s",userId));
         getUserById(userId);
         User user = UserMapper.dtoToUser(userDto);
         return UserMapper.userToDto(userRepository.update(userId, user));
     }
 
     public void deleteUser(long userId) {
+        log.info(String.format("Удаляем юзера с id %s",userId));
         getUserById(userId);
         userRepository.delete(userId);
     }

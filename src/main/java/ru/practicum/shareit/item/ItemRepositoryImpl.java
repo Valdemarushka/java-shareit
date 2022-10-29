@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class ItemRepositoryImpl implements ItemRepository {
-    private static final Map<Long, Item> items = new HashMap<>();
-    private static final Map<Long, List<Long>> itemsByUser = new HashMap<>();
+    private static Map<Long, Item> items = new HashMap<>();
+    private static Map<Long, List<Long>> itemsByUser = new HashMap<>();
     private static long id = 1;
 
     @Override

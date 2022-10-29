@@ -1,8 +1,5 @@
 package ru.practicum.shareit.request;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
 public class ItemRequestMapper {
     public static ItemRequest dtoToItemRequest(ItemRequestDto itemRequestDto) {
         ItemRequest itemRequest = new ItemRequest();

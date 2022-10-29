@@ -1,9 +1,7 @@
 package ru.practicum.shareit.item;
 
-import lombok.NoArgsConstructor;
 import ru.practicum.shareit.user.UserMapper;
 
-@NoArgsConstructor
 public class ItemMapper {
     public static ItemDto itemToDto(Item item) {
         ItemDto itemDto = new ItemDto();

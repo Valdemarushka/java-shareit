@@ -1,8 +1,5 @@
 package ru.practicum.shareit.user;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
 public class UserMapper {
     public static User dtoToUser(UserDto userDto) {
         User user = new User();
