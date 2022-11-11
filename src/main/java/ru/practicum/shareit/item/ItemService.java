@@ -2,14 +2,22 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.NotFoundExeption;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.exception.NotAvailableExeption;
+import ru.practicum.shareit.exception.EntryNotFoundException;
 import ru.practicum.shareit.exception.WrongOwnerExeption;
+import ru.practicum.shareit.item.comment.Comment;
+import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -17,56 +25,111 @@ import java.util.stream.Collectors;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
-    public List<ItemDto> getItemsByUserId(long userId) {
+    public List<Item> getItemsByUserId(long userId) {
         log.info(String.format("Возвращаем вещи юзера с id %s",userId));
-        return itemRepository.findItemsByUserId(userId).stream()
-                .map(ItemMapper::itemToDto)
-                .collect(Collectors.toList());
+        return itemRepository.findItemsByOwner_Id(userId, Sort.by(Sort.Direction.ASC, "id"));
     }
 
-    public ItemDto getItemById(long itemId) {
+    public Item getItemById(long itemId) {
         log.info(String.format("Ищем вещь с id %s",itemId));
-        return itemRepository.findItemById(itemId)
-                .map(ItemMapper::itemToDto)
-                .orElseThrow(() -> new NotFoundExeption("Такой вещи нет"));
+        return itemRepository.findById(itemId)
+                .orElseThrow(EntryNotFoundException.entryNotFoundException("Вещь не найдена"));
     }
 
-    public ItemDto createItem(long userId, ItemDto itemDto) {
+    @Transactional
+    public Item createItem(long userId, Item item) {
         log.info("Создаем вещь");
-        User owner = userRepository.findUserById(userId)
-                .orElseThrow(() -> new NotFoundExeption("Такого пользователя нет"));
-        Item item = ItemMapper.dtoToItem(itemDto);
-        return ItemMapper.itemToDto(itemRepository.createItem(owner, item));
+        User owner = getUserById(userId);
+        item.setOwner(owner);
+        return itemRepository.save(item);
     }
 
-    public ItemDto updateItem(long userId, long itemId, ItemDto itemDto) {
+    @Transactional
+    public Item updateItem(long userId, long itemId, Item item) {
         log.info(String.format("Обновляем вещь с id %s",itemId));
-        User owner = userRepository.findUserById(userId)
-                .orElseThrow(() -> new NotFoundExeption("Такого пользователя нет"));
-        ItemDto itemToUpdate = getItemById(itemId);
-        checkOwner(userId, itemToUpdate);
-        Item item = ItemMapper.dtoToItem(itemDto);
-        return ItemMapper.itemToDto(itemRepository.updateItem(itemId, item));
+        Item itemToUpdate = getItemById(itemId);
+
+        if (!checkOwner(userId, itemToUpdate)) {
+            throw new WrongOwnerExeption("Юзер не является владельцем этой вещи");
+        }
+
+        if (item.getName() != null) {
+            itemToUpdate.setName(item.getName());
+        }
+        if (item.getDescription() != null) {
+            itemToUpdate.setDescription(item.getDescription());
+        }
+        itemToUpdate.setAvailable(item.isAvailable());
+        if (item.getRequest() != null) {
+            itemToUpdate.setRequest(item.getRequest());
+        }
+
+        return itemToUpdate;
     }
 
+    @Transactional
     public void deleteItem(long itemId) {
         log.info(String.format("Удаляем вещь с id %s",itemId));
-        itemRepository.deleteItem(itemId);
+        Item item = getItemById(itemId);
+        itemRepository.delete(item);
     }
 
-    public List<ItemDto> searchItem(String query) {
+    public List<Item> searchItem(String query) {
         log.info(String.format("Ищем вещь %s",query));
-
-        return itemRepository.searchItems(query).stream()
-                .map(ItemMapper::itemToDto)
-                .collect(Collectors.toList());
+        return itemRepository.searchItems(query);
     }
 
-    private void checkOwner(long userId, ItemDto itemDto) {
-        log.info(String.format("Проверяем хозяина вещи с id %s",userId));
-        if (itemDto.getOwner().getId() != userId) {
-            throw new WrongOwnerExeption("Указанный пользователь не является пользователем указанной вещи");
+    @Transactional
+    public Comment addComment(long itemId, long userId, Comment comment) {
+        Item item = getItemById(itemId);
+        User user = getUserById(userId);
+
+        if (user.getBookings().stream().noneMatch(booking -> booking.getItem().equals(item)
+                && booking.getStatus().equals(BookingStatus.APPROVED)
+                && booking.getStart().isBefore(LocalDateTime.now()))) {
+            throw new NotAvailableExeption
+                    ("Юзер не может оставить комментарий к этой вещи, так как еще не бронировал ее");
         }
+        comment.setItem(item);
+        comment.setAuthor(user);
+
+        return commentRepository.save(comment);
+    }
+
+    public void addBookings(Item item, long userId) {
+        log.info("Добавляем бронирование");
+
+        if (item.getBookings() != null && item.getOwner().getId() == userId) {
+
+            item.setLastBooking(
+                    bookingRepository.findBookingsByItemIdAndStartIsBeforeAndStatus(item.getId(),
+                                    LocalDateTime.now(),
+                                    BookingStatus.APPROVED,
+                                    Sort.by(Sort.Direction.DESC, "start")).stream()
+                            .findFirst()
+                            .orElse(null));
+
+            item.setNextBooking(
+                    bookingRepository.findBookingsByItemIdAndStartIsAfterAndStatus(item.getId(),
+                                    LocalDateTime.now(),
+                                    BookingStatus.APPROVED,
+                                    Sort.by(Sort.Direction.ASC, "start")).stream()
+                            .findFirst()
+                            .orElse(null));
+        }
+    }
+
+    private boolean checkOwner(long userId, Item item) {
+        log.info(String.format("Проверяем хозяина вещи с id %s",userId));
+        return item.getOwner().getId() == userId;
+    }
+
+    private User getUserById(long userId) {
+        log.info(String.format("Возвращаем юзера с id %s",userId));
+        return userRepository.findById(userId)
+                .orElseThrow(EntryNotFoundException.entryNotFoundException("Юзер не найден"));
     }
 }
