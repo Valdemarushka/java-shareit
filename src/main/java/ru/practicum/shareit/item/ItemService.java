@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.exception.NotAvailableExeption;
 import ru.practicum.shareit.exception.EntryNotFoundException;
+import ru.practicum.shareit.exception.NotAvailableExeption;
 import ru.practicum.shareit.exception.WrongOwnerExeption;
 import ru.practicum.shareit.item.comment.Comment;
 import ru.practicum.shareit.item.comment.CommentRepository;
@@ -17,7 +17,6 @@ import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,12 +28,12 @@ public class ItemService {
     private final CommentRepository commentRepository;
 
     public List<Item> getItemsByUserId(long userId) {
-        log.info(String.format("Возвращаем вещи юзера с id %s",userId));
+        log.info(String.format("Возвращаем вещи юзера с id %s", userId));
         return itemRepository.findItemsByOwner_Id(userId, Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Item getItemById(long itemId) {
-        log.info(String.format("Ищем вещь с id %s",itemId));
+        log.info(String.format("Ищем вещь с id %s", itemId));
         return itemRepository.findById(itemId)
                 .orElseThrow(EntryNotFoundException.entryNotFoundException("Вещь не найдена"));
     }
@@ -49,7 +48,7 @@ public class ItemService {
 
     @Transactional
     public Item updateItem(long userId, long itemId, Item item) {
-        log.info(String.format("Обновляем вещь с id %s",itemId));
+        log.info(String.format("Обновляем вещь с id %s", itemId));
         Item itemToUpdate = getItemById(itemId);
 
         if (!checkOwner(userId, itemToUpdate)) {
@@ -72,13 +71,13 @@ public class ItemService {
 
     @Transactional
     public void deleteItem(long itemId) {
-        log.info(String.format("Удаляем вещь с id %s",itemId));
+        log.info(String.format("Удаляем вещь с id %s", itemId));
         Item item = getItemById(itemId);
         itemRepository.delete(item);
     }
 
     public List<Item> searchItem(String query) {
-        log.info(String.format("Ищем вещь %s",query));
+        log.info(String.format("Ищем вещь %s", query));
         return itemRepository.searchItems(query);
     }
 
@@ -90,8 +89,8 @@ public class ItemService {
         if (user.getBookings().stream().noneMatch(booking -> booking.getItem().equals(item)
                 && booking.getStatus().equals(BookingStatus.APPROVED)
                 && booking.getStart().isBefore(LocalDateTime.now()))) {
-            throw new NotAvailableExeption
-                    ("Юзер не может оставить комментарий к этой вещи, так как еще не бронировал ее");
+            throw new NotAvailableExeption("Юзер не может оставить комментарий к этой вещи," +
+                    " так как еще не бронировал ее");
         }
         comment.setItem(item);
         comment.setAuthor(user);
@@ -123,12 +122,12 @@ public class ItemService {
     }
 
     private boolean checkOwner(long userId, Item item) {
-        log.info(String.format("Проверяем хозяина вещи с id %s",userId));
+        log.info(String.format("Проверяем хозяина вещи с id %s", userId));
         return item.getOwner().getId() == userId;
     }
 
     private User getUserById(long userId) {
-        log.info(String.format("Возвращаем юзера с id %s",userId));
+        log.info(String.format("Возвращаем юзера с id %s", userId));
         return userRepository.findById(userId)
                 .orElseThrow(EntryNotFoundException.entryNotFoundException("Юзер не найден"));
     }

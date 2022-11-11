@@ -47,7 +47,7 @@ public class ExeptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<String> handleNotValidEmail(NotValidEmail e) {
+    public ResponseEntity<String> handleNotValidEmail(NotValidEmailExeption e) {
         log.error("Ошибка: в Email");
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }

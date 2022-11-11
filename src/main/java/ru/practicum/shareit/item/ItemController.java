@@ -10,7 +10,6 @@ import ru.practicum.shareit.groups.ForUpdate;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.comment.dto.CommentRequestDto;
 import ru.practicum.shareit.item.comment.dto.CommentResponseDto;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 

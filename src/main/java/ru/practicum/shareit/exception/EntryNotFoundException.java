@@ -1,6 +1,5 @@
 package ru.practicum.shareit.exception;
 
-import java.text.MessageFormat;
 import java.util.function.Supplier;
 
 public class EntryNotFoundException extends RuntimeException {
