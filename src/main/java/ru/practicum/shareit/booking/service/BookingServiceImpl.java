@@ -1,10 +1,14 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.BookingState;
+import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
@@ -19,22 +23,24 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional(readOnly = true)
-public class BookingService {
+public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
     @Autowired
-    public BookingService(BookingRepository bookingRepository,
-                          UserRepository userRepository,
-                          ItemRepository itemRepository) {
+    public BookingServiceImpl(BookingRepository bookingRepository,
+                              UserRepository userRepository,
+                              ItemRepository itemRepository) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
     }
 
+    @Override
     public Booking getBookingById(long bookingId, long userId) {
-        log.info(String.format("Ищем запись с id %s",bookingId));
+        getUserById(userId);
+        log.info(String.format("Ищем запись с id %s", bookingId));
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(EntryNotFoundException.entryNotFoundException("Запись бронирования не найдена"));
         Item item = booking.getItem();
@@ -49,32 +55,36 @@ public class BookingService {
         return booking;
     }
 
-    public List<Booking> getBookings(BookingState state, long userId) {
-        log.info(String.format("Ищем записи бронирования юзера с id %s",userId));
+    @Override
+    public List<Booking> getBookings(String state, long userId) {
+        BookingState stateEnum = BookingState.valueOf(state.trim().toUpperCase());
+        log.info(String.format("Ищем записи бронирования юзера с id %s", userId));
         getUserById(userId);
         Sort sorting = Sort.by(Sort.Direction.DESC, "start");
         LocalDateTime now = LocalDateTime.now();
 
-        switch (state) {
+        switch (stateEnum) {
             case ALL:
-                return bookingRepository.findBookingsByBookerId(userId, sorting);
+                return bookingRepository.findByBookerId(userId, sorting);
             case WAITING:
-                return bookingRepository.findBookingsByBookerIdAndStatus(userId, BookingStatus.WAITING, sorting);
+                return bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, sorting);
             case REJECTED:
-                return bookingRepository.findBookingsByBookerIdAndStatus(userId, BookingStatus.REJECTED, sorting);
+                return bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, sorting);
             case CURRENT:
-                return bookingRepository.findBookingsByBookerIdAndStartIsBeforeAndEndIsAfter(userId, now, now, sorting);
+                return bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(userId, now, now, sorting);
             case PAST:
-                return bookingRepository.findBookingsByBookerIdAndEndIsBefore(userId, now, sorting);
+                return bookingRepository.findByBookerIdAndEndIsBefore(userId, now, sorting);
             case FUTURE:
-                return bookingRepository.findBookingsByBookerIdAndStartIsAfter(userId, now, sorting);
+                return bookingRepository.findByBookerIdAndStartIsAfter(userId, now, sorting);
             default:
                 throw new WrongBookingStateException("Unknown state: " + state);
         }
     }
 
-    public List<Booking> getBookingsByItemOwner(BookingState state, long userId) {
-        log.info(String.format("Ищем записи бронирования владельца с id %s",userId));
+    @Override
+    public List<Booking> getBookingsByItemOwner(String state, long userId) {
+        BookingState stateEnum = BookingState.valueOf(state.trim().toUpperCase());
+        log.info(String.format("Ищем записи бронирования владельца с id %s", userId));
         getUserById(userId);
         List<Long> userItemsId = itemRepository.findItemsByOwner_Id(userId).stream()
                 .map(Item::getId)
@@ -86,29 +96,29 @@ public class BookingService {
             return Collections.emptyList();
         }
 
-        switch (state) {
+        switch (stateEnum) {
             case ALL:
-                return bookingRepository.findBookingsByItemIdIn(userItemsId,
+                return bookingRepository.findByItemIdIn(userItemsId,
                         sorting);
             case WAITING:
-                return bookingRepository.findBookingsByItemIdInAndStatus(userItemsId,
+                return bookingRepository.findByItemIdInAndStatus(userItemsId,
                         BookingStatus.WAITING,
                         sorting);
             case REJECTED:
-                return bookingRepository.findBookingsByItemIdInAndStatus(userItemsId,
+                return bookingRepository.findByItemIdInAndStatus(userItemsId,
                         BookingStatus.REJECTED,
                         sorting);
             case CURRENT:
-                return bookingRepository.findBookingsByItemIdInAndStartIsBeforeAndEndIsAfter(userItemsId,
+                return bookingRepository.findByItemIdInAndStartIsBeforeAndEndIsAfter(userItemsId,
                         now,
                         now,
                         sorting);
             case PAST:
-                return bookingRepository.findBookingsByItemIdInAndEndIsBefore(userItemsId,
+                return bookingRepository.findByItemIdInAndEndIsBefore(userItemsId,
                         now,
                         sorting);
             case FUTURE:
-                return bookingRepository.findBookingsByItemIdInAndStartIsAfter(userItemsId,
+                return bookingRepository.findByItemIdInAndStartIsAfter(userItemsId,
                         now,
                         sorting);
             default:
@@ -116,6 +126,7 @@ public class BookingService {
         }
     }
 
+    @Override
     @Transactional
     public Booking createBooking(long userId, Booking booking) {
         log.info("Создаем запись бронирования");
@@ -134,8 +145,10 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    @Override
     @Transactional
     public Booking changeStatus(long bookingId, long userId, boolean approved) {
+        getUserById(userId);
         log.info("Меняем статус бронирования");
         Booking booking = getBookingById(bookingId, userId);
 
@@ -149,11 +162,12 @@ public class BookingService {
             throw new WrongOwnerExeption("Юзер не является владельцем вещи");
         }
 
-        if (approved) {
+        if (approved && booking.getStatus().equals(BookingStatus.WAITING)) {
             booking.setStatus(BookingStatus.APPROVED);
         } else {
             booking.setStatus(BookingStatus.REJECTED);
         }
+        bookingRepository.save(booking);
         return booking;
     }
 
@@ -166,7 +180,7 @@ public class BookingService {
     }
 
     private User getUserById(long userId) {
-        log.info(String.format("Ищем юзера с id %s",userId));
+        log.info(String.format("Ищем юзера с id %s", userId));
         return userRepository.findById(userId)
                 .orElseThrow(EntryNotFoundException.entryNotFoundException("Юзер не найден"));
     }

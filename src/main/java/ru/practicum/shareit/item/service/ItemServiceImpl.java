@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +10,8 @@ import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.EntryNotFoundException;
 import ru.practicum.shareit.exception.NotAvailableExeption;
 import ru.practicum.shareit.exception.WrongOwnerExeption;
+import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.comment.Comment;
 import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.user.User;
@@ -21,23 +23,26 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class ItemService {
+public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
+    @Override
     public List<Item> getItemsByUserId(long userId) {
         log.info(String.format("Возвращаем вещи юзера с id %s", userId));
         return itemRepository.findItemsByOwner_Id(userId, Sort.by(Sort.Direction.ASC, "id"));
     }
 
+    @Override
     public Item getItemById(long itemId) {
         log.info(String.format("Ищем вещь с id %s", itemId));
         return itemRepository.findById(itemId)
                 .orElseThrow(EntryNotFoundException.entryNotFoundException("Вещь не найдена"));
     }
 
+    @Override
     @Transactional
     public Item createItem(long userId, Item item) {
         log.info("Создаем вещь");
@@ -46,6 +51,7 @@ public class ItemService {
         return itemRepository.save(item);
     }
 
+    @Override
     @Transactional
     public Item updateItem(long userId, long itemId, Item item) {
         log.info(String.format("Обновляем вещь с id %s", itemId));
@@ -69,18 +75,13 @@ public class ItemService {
         return itemToUpdate;
     }
 
-    @Transactional
-    public void deleteItem(long itemId) {
-        log.info(String.format("Удаляем вещь с id %s", itemId));
-        Item item = getItemById(itemId);
-        itemRepository.delete(item);
-    }
-
+    @Override
     public List<Item> searchItem(String query) {
         log.info(String.format("Ищем вещь %s", query));
         return itemRepository.searchItems(query);
     }
 
+    @Override
     @Transactional
     public Comment addComment(long itemId, long userId, Comment comment) {
         Item item = getItemById(itemId);
@@ -98,13 +99,14 @@ public class ItemService {
         return commentRepository.save(comment);
     }
 
+    @Override
     public void addBookings(Item item, long userId) {
         log.info("Добавляем бронирование");
 
         if (item.getBookings() != null && item.getOwner().getId() == userId) {
 
             item.setLastBooking(
-                    bookingRepository.findBookingsByItemIdAndStartIsBeforeAndStatus(item.getId(),
+                    bookingRepository.findByItemIdAndStartIsBeforeAndStatus(item.getId(),
                                     LocalDateTime.now(),
                                     BookingStatus.APPROVED,
                                     Sort.by(Sort.Direction.DESC, "start")).stream()
@@ -112,7 +114,7 @@ public class ItemService {
                             .orElse(null));
 
             item.setNextBooking(
-                    bookingRepository.findBookingsByItemIdAndStartIsAfterAndStatus(item.getId(),
+                    bookingRepository.findByItemIdAndStartIsAfterAndStatus(item.getId(),
                                     LocalDateTime.now(),
                                     BookingStatus.APPROVED,
                                     Sort.by(Sort.Direction.ASC, "start")).stream()

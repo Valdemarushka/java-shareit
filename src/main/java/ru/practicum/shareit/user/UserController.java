@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.groups.ForCreate;
 import ru.practicum.shareit.groups.ForUpdate;
+import ru.practicum.shareit.user.service.UserServiceImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,10 +17,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
     @Autowired
-    public UserController(@Qualifier("userService") UserService userService) {
+    public UserController(@Qualifier("userServiceImpl") UserServiceImpl userService) {
         this.userService = userService;
     }
 

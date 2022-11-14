@@ -12,6 +12,7 @@ import ru.practicum.shareit.item.comment.dto.CommentRequestDto;
 import ru.practicum.shareit.item.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.service.ItemServiceImpl;
 
 import javax.validation.Valid;
 import java.util.Collections;
@@ -22,10 +23,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/items")
 @Validated
 public class ItemController {
-    private final ItemService itemService;
+    private final ItemServiceImpl itemService;
 
     @Autowired
-    public ItemController(ItemService itemService) {
+    public ItemController(ItemServiceImpl itemService) {
         this.itemService = itemService;
     }
 
@@ -59,11 +60,6 @@ public class ItemController {
         return ItemMapper.itemToDto(itemService.updateItem(userId,
                 itemId,
                 ItemMapper.dtoToItem(itemDto)));
-    }
-
-    @DeleteMapping("/{itemId}")
-    public void deleteItem(@PathVariable long itemId) {
-        itemService.deleteItem(itemId);
     }
 
     @GetMapping("/search")

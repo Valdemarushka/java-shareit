@@ -1,13 +1,15 @@
 package ru.practicum.shareit.booking;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "bookings")
 public class Booking {
@@ -17,7 +19,7 @@ public class Booking {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "item_id", referencedColumnName = "item_id")
+    @JoinColumn(name = "item_id")
     private Item item;
 
     @Column(name = "start_date", nullable = false)
