@@ -1,14 +1,13 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.groups.ForCreate;
 import ru.practicum.shareit.groups.ForUpdate;
-import ru.practicum.shareit.user.service.UserServiceImpl;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,10 +16,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @Autowired
-    public UserController(@Qualifier("userServiceImpl") UserServiceImpl userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
