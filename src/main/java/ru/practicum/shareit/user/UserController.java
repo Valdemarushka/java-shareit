@@ -7,8 +7,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.groups.ForCreate;
 import ru.practicum.shareit.groups.ForUpdate;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -23,23 +25,28 @@ public class UserController {
 
     @GetMapping
     public List<UserDto> getUsers() {
-        return userService.getUsers();
+        return userService.getUsers().stream()
+                .map(UserMapper::userToDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{userId}")
     public UserDto getUserById(@PathVariable long userId) {
-        return userService.getUserById(userId);
+        return UserMapper.userToDto(userService.getUserById(userId));
     }
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@RequestBody @Validated(ForCreate.class) UserDto userDto) {
-        return new ResponseEntity<>(userService.createUser(userDto), HttpStatus.CREATED);
+        User user = UserMapper.dtoToUser(userDto);
+        UserDto dto = UserMapper.userToDto(userService.createUser(user));
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@PathVariable long userId,
                               @RequestBody @Validated(ForUpdate.class) UserDto userDto) {
-        return userService.updateUser(userId, userDto);
+        User user = UserMapper.dtoToUser(userDto);
+        return UserMapper.userToDto(userService.updateUser(userId, user));
     }
 
     @DeleteMapping("/{userId}")
