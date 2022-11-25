@@ -4,12 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.comment.Comment;
-import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.Request;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -31,15 +30,9 @@ public class Item {
 
     private boolean available;
 
-    @Transient
-    private Booking lastBooking;
-
-    @Transient
-    private Booking nextBooking;
-
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "request_id", referencedColumnName = "request_id")
-    private ItemRequest request;
+    private Request request;
 
     @OneToMany(mappedBy = "item")
     private List<Booking> bookings;
@@ -47,16 +40,9 @@ public class Item {
     @OneToMany(mappedBy = "item")
     private List<Comment> comments;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Item item = (Item) o;
-        return id == item.id;
-    }
+    @Transient
+    private Booking lastBooking;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    @Transient
+    private Booking nextBooking;
 }

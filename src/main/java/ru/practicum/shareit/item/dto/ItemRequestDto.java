@@ -8,12 +8,14 @@ import javax.validation.constraints.NotNull;
 
 @Data
 public class ItemRequestDto {
-    @NotBlank(groups = ForCreate.class, message = "Параметр name не может быть пустым")
+    @NotBlank(groups = ForCreate.class, message = "Имя не может быть пустым")
     private String name;
 
-    @NotBlank(groups = ForCreate.class, message = "Параметр description не может быть пустым")
+    @NotBlank(groups = ForCreate.class, message = "Описание не может быть пустым")
     private String description;
 
-    @NotNull(groups = ForCreate.class, message = "Параметр available не может быть пустым")
+    @NotNull(groups = ForCreate.class, message = "Доступность не может быть пустой")
     private Boolean available;
+
+    private Long requestId;
 }

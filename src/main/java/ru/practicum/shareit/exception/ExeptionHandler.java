@@ -1,11 +1,14 @@
 package ru.practicum.shareit.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.validation.ConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +54,6 @@ public class ExeptionHandler {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
 
-
     @ExceptionHandler
     public ResponseEntity<String> handleItemNotFound(NotFoundExeption e) {
         log.error("Ошибка: не найдено");
@@ -63,4 +65,36 @@ public class ExeptionHandler {
         log.error("Ошибка: неверный владелец");
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException e) {
+        log.error("Ошибка: нарушение ограничения целостности базы данных");
+        Map<String, String> map = new HashMap<>();
+        e.getConstraintViolations().forEach(error -> {
+            String message = error.getMessage();
+            map.put("error", message);
+        });
+        return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleConversionFailed(ConversionFailedException e) {
+        log.error("Ошибка: несуществующий параметр");
+        Map<String, String> map = new HashMap<>();
+        String message = "Unknown state: " + e.getValue();
+        map.put("error", message);
+        return new ResponseEntity<>(map, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        log.error("Ошибка: валидация");
+        Map<String, String> map = new HashMap<>();
+        e.getBindingResult().getFieldErrors().forEach(error -> {
+            String message = error.getDefaultMessage();
+            map.put("error", message);
+        });
+        return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
+    }
+
 }
