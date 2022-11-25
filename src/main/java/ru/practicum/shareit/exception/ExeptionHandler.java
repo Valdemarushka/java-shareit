@@ -49,18 +49,6 @@ public class ExeptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<String> handleNotValidEmail(NotValidEmailExeption e) {
-        log.error("Ошибка: в Email");
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<String> handleItemNotFound(NotFoundExeption e) {
-        log.error("Ошибка: не найдено");
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler
     public ResponseEntity<String> handleWrongOwner(WrongOwnerExeption e) {
         log.error("Ошибка: неверный владелец");
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
