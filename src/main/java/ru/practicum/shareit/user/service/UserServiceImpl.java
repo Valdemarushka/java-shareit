@@ -6,9 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.EntryNotFoundException;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserDto;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -18,39 +21,46 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    public List<UserDto> getUsers() {
+        return userRepository.findAll().stream()
+                .map(UserMapper::userToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public User getUserById(long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(EntryNotFoundException.entryNotFoundException("Юзер не найден"));
-    }
-
-    @Override
-    @Transactional
-    public User createUser(User user) {
-        return userRepository.save(user);
+    public UserDto getUserById(long userId) {
+        return UserMapper.userToDto(getUserFromId(userId));
     }
 
     @Override
     @Transactional
-    public User updateUser(long userId, User user) {
-        User userToUpdate = getUserById(userId);
-        if (user.getName() != null) {
-            userToUpdate.setName(user.getName());
+    public UserDto createUser(UserDto userDto) {
+        User user = UserMapper.dtoToUser(userDto);
+        return UserMapper.userToDto(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UserDto updateUser(long userId, UserDto userDto) {
+        User userToUpdate = getUserFromId(userId);
+        if (userDto.getName() != null) {
+            userToUpdate.setName(userDto.getName());
         }
-        if (user.getEmail() != null) {
-            userToUpdate.setEmail(user.getEmail());
+        if (userDto.getEmail() != null) {
+            userToUpdate.setEmail(userDto.getEmail());
         }
-        return userToUpdate;
+        return UserMapper.userToDto(userToUpdate);
     }
 
     @Override
     @Transactional
     public void deleteUser(long userId) {
-        User user = getUserById(userId);
+        User user = getUserFromId(userId);
         userRepository.delete(user);
+    }
+
+    private User getUserFromId(long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(EntryNotFoundException.entryNotFoundException("Юзер не найден"));
     }
 }

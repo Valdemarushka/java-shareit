@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.comment.Comment;
@@ -8,7 +9,8 @@ import ru.practicum.shareit.item.comment.Comment;
 import javax.persistence.*;
 import java.util.List;
 
-@Data
+@Setter
+@Getter
 @Entity
 @Table(name = "users")
 public class User {
