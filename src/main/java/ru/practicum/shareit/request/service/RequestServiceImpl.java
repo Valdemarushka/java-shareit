@@ -63,7 +63,6 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    @Transactional
     public ResponseDto createItemRequest(long userId, RequestDto requestDto) {
         Request itemRequest = RequestMapper.dtoToItemRequest(requestDto);
         User user = getUserById(userId);

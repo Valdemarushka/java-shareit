@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
@@ -8,6 +9,7 @@ import ru.practicum.shareit.user.UserMapper;
 
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class ItemMapper {
     public static ItemResponseDto itemToDto(Item item) {
         ItemResponseDto.ItemResponseDtoBuilder dtoBuilder = ItemResponseDto.builder();
