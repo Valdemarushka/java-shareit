@@ -84,5 +84,4 @@ public class ExeptionHandler {
         });
         return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
     }
-
 }

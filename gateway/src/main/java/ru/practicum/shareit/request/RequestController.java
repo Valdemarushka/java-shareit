@@ -40,6 +40,4 @@ public class RequestController {
                                                 @RequestBody @Valid RequestDto requestDto) {
         return requestClient.createItemRequest(userId, requestDto);
     }
-
-
 }
