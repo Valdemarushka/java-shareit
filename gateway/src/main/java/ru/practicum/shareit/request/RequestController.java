@@ -1,6 +1,6 @@
 package ru.practicum.shareit.request;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +13,9 @@ import javax.validation.constraints.PositiveOrZero;
 @Validated
 @RestController
 @RequestMapping(path = "/requests")
+@RequiredArgsConstructor
 public class RequestController {
     private final RequestClient requestClient;
-
-    @Autowired
-    public RequestController(RequestClient requestClient) {
-        this.requestClient = requestClient;
-    }
 
     @GetMapping("/{requestId}")
     public ResponseEntity<Object> getRequestById(@PathVariable long requestId,

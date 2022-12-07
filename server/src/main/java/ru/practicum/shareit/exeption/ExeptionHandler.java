@@ -85,4 +85,9 @@ public class ExeptionHandler {
         return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<String> handleThrowable(Throwable e) {
+        log.error("Ошибка: необработанное исключение");
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

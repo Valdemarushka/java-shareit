@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import ru.practicum.shareit.item.dto.ItemRequestDto;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/items")
@@ -55,6 +57,9 @@ public class ItemController {
                                               @RequestParam String text,
                                               @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                               @RequestParam(defaultValue = "10") @Positive int size) {
+        if (text.isBlank()) {
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+        }
         return itemClient.searchItems(userId, from, size, text);
     }
 

@@ -1,11 +1,13 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.exception.WrongDateException;
 
 import javax.validation.Valid;
@@ -30,6 +32,7 @@ public class BookingController {
                                               @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                               @RequestParam(defaultValue = "10") @Positive int size,
                                               @RequestHeader("X-Sharer-User-Id") long userId) {
+        checkBookingState(state);
         return bookingClient.getBookings(userId, state, from, size);
     }
 
@@ -38,6 +41,7 @@ public class BookingController {
                                                         @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                                         @RequestParam(defaultValue = "10") @Positive int size,
                                                         @RequestHeader("X-Sharer-User-Id") long userId) {
+        checkBookingState(state);
         return bookingClient.getBookingsByItemOwner(userId, state, from, size);
     }
 
@@ -58,6 +62,13 @@ public class BookingController {
     private void checkBookingDate(BookingRequestDto bookingRequestDto) {
         if (!bookingRequestDto.getStart().isBefore(bookingRequestDto.getEnd())) {
             throw new WrongDateException("Дата окончания бронирования меньше даты начала бронирования");
+        }
+    }
+
+    private void checkBookingState(String state) {
+        try {
+            Enum.valueOf(BookingState.class, state);
+        } catch (ConversionFailedException e) {
         }
     }
 }
