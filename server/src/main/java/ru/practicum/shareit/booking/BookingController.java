@@ -1,22 +1,20 @@
 package ru.practicum.shareit.booking;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.booking.service.BookingServiceImpl;
+import ru.practicum.shareit.booking.service.BookingService;
 
 import java.util.List;
 
-@Validated
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
-    private final BookingServiceImpl bookingService;
+    private final BookingService bookingService;
 
     @Autowired
-    public BookingController(BookingServiceImpl bookingService) {
+    public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
     }
 

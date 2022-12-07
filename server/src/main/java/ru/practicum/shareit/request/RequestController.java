@@ -4,17 +4,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.RequestDto;
 import ru.practicum.shareit.request.dto.ResponseDto;
-import ru.practicum.shareit.request.service.RequestServiceImpl;
+import ru.practicum.shareit.request.service.RequestService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/requests")
 public class RequestController {
-    private final RequestServiceImpl requestService;
+    private final RequestService requestService;
 
     @Autowired
-    public RequestController(RequestServiceImpl requestService) {
+    public RequestController(RequestService requestService) {
         this.requestService = requestService;
     }
 
