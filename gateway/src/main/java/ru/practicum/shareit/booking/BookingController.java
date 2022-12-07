@@ -67,8 +67,9 @@ public class BookingController {
 
     private void checkBookingState(String state) {
         try {
-            Enum.valueOf(BookingState.class, state);
+            BookingState.valueOf(BookingState.class, state);
         } catch (ConversionFailedException e) {
+            throw new IllegalArgumentException();
         }
     }
 }
